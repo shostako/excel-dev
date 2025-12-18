@@ -1,0 +1,20 @@
+# macros - 変換出力（一時ファイル扱い）
+macros/
+
+# inbox - ユーザー提供ファイル
+inbox/
+
+# 環境設定
+.env
+
+# 一時ファイル
+*.tmp
+*.temp
+*~
+
+# Windows
+Thumbs.db
+desktop.ini
+
+# Claude Code ローカル設定
+.claude/settings.local.json
