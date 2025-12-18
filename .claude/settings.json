@@ -4,17 +4,32 @@
   "hooks": {
     "SessionStart": [
       {
-        "command": "powershell -ExecutionPolicy Bypass -File ../hooks/hook-wrapper.ps1 SessionStart"
+        "hooks": [
+          {
+            "type": "command",
+            "command": "powershell -ExecutionPolicy Bypass -File ../hooks/hook-wrapper.ps1 SessionStart"
+          }
+        ]
       }
     ],
     "SessionEnd": [
       {
-        "command": "powershell -ExecutionPolicy Bypass -File ../hooks/hook-wrapper.ps1 SessionEnd"
+        "hooks": [
+          {
+            "type": "command",
+            "command": "powershell -ExecutionPolicy Bypass -File ../hooks/hook-wrapper.ps1 SessionEnd"
+          }
+        ]
       }
     ],
     "PreCompact": [
       {
-        "command": "powershell -ExecutionPolicy Bypass -File ../hooks/hook-wrapper.ps1 PreCompact"
+        "hooks": [
+          {
+            "type": "command",
+            "command": "powershell -ExecutionPolicy Bypass -File ../hooks/hook-wrapper.ps1 PreCompact"
+          }
+        ]
       }
     ]
   }

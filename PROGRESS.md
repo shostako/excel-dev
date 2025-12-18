@@ -1,4 +1,4 @@
-# excel-auto 進捗管理
+# excel-dev 進捗管理
 
 **最終更新**: 2025-12-18 13:32
 **直近Gitコミット**: f28b226 Initial commit: VBAマクロ開発環境セットアップ

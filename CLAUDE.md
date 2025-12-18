@@ -1,4 +1,4 @@
-# excel-auto プロジェクト設定
+# excel-dev プロジェクト設定
 
 ## 概要
 
