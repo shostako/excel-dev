@@ -1,7 +1,7 @@
 # excel-auto 進捗管理
 
-**最終更新**: 2025-12-18 15:50
-**直近Gitコミット**: f203c91 chore: プロジェクト名変更とClaude Code設定更新
+**最終更新**: 2025-12-18 20:25
+**直近Gitコミット**: fc60add docs: ナレッジ整備（backup削除、README更新）
 
 ---
 
@@ -21,10 +21,11 @@ Windows環境でのVBAマクロ開発環境が稼働中。GitHub連携済み。
 - [x] プロジェクト名統一（excel-auto → excel-dev）
 - [x] GitHub連携（https://github.com/shostako/excel-dev）
 - [x] ディレクトリ名をexcel-autoに戻し（リポジトリ名はexcel-devのまま）
+- [x] docs/excel-knowledge/ ナレッジ整備（backup削除、README更新）
 
 ## 未完了
 
-- [ ] docs/excel-knowledge/ ナレッジ整備
+（なし）
 
 ## 次セッションへの引き継ぎ
 
