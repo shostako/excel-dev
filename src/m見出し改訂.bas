@@ -323,6 +323,16 @@ Private Sub FormatFrontPage(ByVal ws As Worksheet)
     ws.Range("AF9:AH9").Value = "照査"
     ws.Range("AI9:AK9").Value = "作成"
 
+    ' 6.5) E7,E9の書式設定（日付用）
+    With ws.Range("E7")
+        .Font.Size = 11
+        .NumberFormatLocal = "yyyy""年""m""月""d""日"""
+    End With
+    With ws.Range("E9")
+        .Font.Size = 11
+        .NumberFormatLocal = "yyyy""年""m""月""d""日"""
+    End With
+
     ' 7) L9にB1の文字列、フォント指定
     ws.Range("L9").Value = ws.Range("B1").Value
     With ws.Range("L9").Font
@@ -361,6 +371,18 @@ Private Sub FormatFrontPage(ByVal ws As Worksheet)
 
     ' 10) 1〜5行を削除
     ws.Rows("1:5").Delete Shift:=xlUp
+
+    ' 11) 印刷設定（行削除後の最終座標で指定）
+    With ws.PageSetup
+        .PrintArea = "B2:AK66"
+        .LeftMargin = Application.CentimetersToPoints(1)
+        .RightMargin = 0
+        .TopMargin = 0
+        .BottomMargin = 0
+        .CenterHorizontally = True
+        .CenterVertically = True
+        .Zoom = 100
+    End With
 
 CleanExit:
     Application.EnableEvents = True
