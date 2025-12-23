@@ -14,7 +14,7 @@ Option Explicit
 
 '==================== 設 定 ====================
 Private Const FILE_PATTERN As String = "*.xls*"         ' 対象拡張子
-Private Const OLD_FOLDER As String = "旧書式"           ' 元ファイルを保管するフォルダ名
+Private Const OLD_FOLDER As String = "■旧書式"          ' 元ファイルを保管するフォルダ名
 '================================================
 
 Public Sub 見出し改訂_フォルダ一括()
@@ -85,6 +85,8 @@ Private Sub ProcessFolder(ByVal folderPath As String, ByVal logWs As Worksheet, 
     Dim baseName As String, ext As String
     Dim sht As Worksheet, processed As Boolean
     Dim fso As Object
+    Dim files As Collection
+    Dim fileName As Variant
 
     Set fso = CreateObject("Scripting.FileSystemObject")
     thisPath = ThisWorkbook.FullName
@@ -92,9 +94,17 @@ Private Sub ProcessFolder(ByVal folderPath As String, ByVal logWs As Worksheet, 
     ' 「旧書式」フォルダのパス
     oldFolderPath = folderPath & OLD_FOLDER & "\"
 
-    ' ファイル処理
+    ' ファイル一覧を先に全て取得（Dir()ループ中のファイル変更問題を回避）
+    Set files = New Collection
     f = Dir(folderPath & FILE_PATTERN)
     Do While Len(f) > 0
+        files.Add f
+        f = Dir()
+    Loop
+
+    ' 取得済みリストをループして処理
+    For Each fileName In files
+        f = CStr(fileName)
         ' 自分自身はスキップ
         If folderPath & f <> thisPath Then
             On Error GoTo HandleErr
@@ -161,9 +171,8 @@ Private Sub ProcessFolder(ByVal folderPath As String, ByVal logWs As Worksheet, 
         End If
 NextFile:
         On Error GoTo 0
-        f = Dir()
         DoEvents
-    Loop
+    Next fileName
     Exit Sub
 
 HandleErr:
