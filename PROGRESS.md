@@ -1,33 +1,49 @@
 # excel-auto 進捗管理
 
-**最終更新**: 2025-12-18 20:25
-**直近Gitコミット**: fc60add docs: ナレッジ整備（backup削除、README更新）
+**最終更新**: 2025-12-23 10:11
+**直近Gitコミット**: （コミット予定）
 
 ---
 
 ## 現在の状態
 
-Windows環境でのVBAマクロ開発環境が稼働中。GitHub連携済み。
+「見出し改訂」マクロを開発中。基本機能は完成、微調整中。
+
+## アクティブタスク
+
+### m見出し改訂.bas の改良（継続中）
+
+**完了した機能**:
+- [x] フォルダ一括処理（全シート対象、2行目までにデータがあるシートのみ）
+- [x] 元ファイルを「旧書式」サブフォルダに移動
+- [x] 同名で拡張子違いファイルの事前チェック
+- [x] 保存前に全シートA1選択・スクロール位置リセット
+- [x] ログ出力（ファイル名/変換前/変換後/シート数/フォルダパス）
+- [x] 完了メッセージ2秒自動消去（MessageBoxTimeout API）
+
+**確認が必要な項目**:
+- [ ] ログの2行目空白問題（logRow初期化を修正済み、要確認）
+
+**ユーザーからの追加要望があれば対応**
+
+### ファイル場所
+
+- ソース: `src/m見出し改訂.bas` (UTF-8)
+- Excel用: `macros/m見出し改訂.bas` (Shift-JIS)
+- 元マクロ: `inbox/mBatchFormat_Folder.bas`
+
+---
 
 ## 完了済み
 
 - [x] Windows環境用プロジェクトセットアップ
 - [x] ルール設定（01-04共通 + 10-13 VBA固有）
-- [x] hooks設定（PowerShell対応・新フォーマット移行済み）
 - [x] scripts/bas2sjis.ps1 動作確認
-- [x] excel-vba-expertスキルのWindows用パス修正
-- [x] VBAマクロレビュー・修正（9モジュール）
-- [x] Mondayエージェント設定（~/.claude/agents/monday.md）
-- [x] プロジェクト名統一（excel-auto → excel-dev）
 - [x] GitHub連携（https://github.com/shostako/excel-dev）
-- [x] ディレクトリ名をexcel-autoに戻し（リポジトリ名はexcel-devのまま）
-- [x] docs/excel-knowledge/ ナレッジ整備（backup削除、README更新）
-
-## 未完了
-
-（なし）
+- [x] docs/excel-knowledge/ ナレッジ整備
 
 ## 次セッションへの引き継ぎ
 
-- macros/に9つの修正済みマクロあり（Excelインポート可能）
-- VBA開発作業開始時はdocs/excel-knowledge/の必読ファイルを確認すること
+1. **まずやること**: ログの2行目空白問題が解決したか確認
+2. **マクロファイル**: `macros/m見出し改訂.bas` をExcelにインポートしてテスト
+3. **追加要望**: ユーザーに確認して対応
