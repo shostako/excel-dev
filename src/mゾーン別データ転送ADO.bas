@@ -183,6 +183,9 @@ Sub ゾーン別データ転送ADO()
     batchCounter = 0
     totalSuccess = 0
 
+    ' 年リストを初期化（月別分割マクロとの連携用）
+    InitTransferredYears
+
     ' 転送対象のフィールドを明示的に指定（差戻しを末尾に追加）
     Dim targetFields As Variant
     targetFields = Array("日付", "品番", "品番末尾", "注番月", "ロット", "発見", "ゾーン", "番号", "数量", "差戻し")
@@ -464,6 +467,9 @@ NextRow:
         End If
 
         totalSuccess = totalSuccess + successCount
+
+        ' この年を処理済みリストに追加（月別分割マクロとの連携用）
+        AddTransferredYear CInt(yearKey)
 
         ' 接続クローズ
         conn.Close

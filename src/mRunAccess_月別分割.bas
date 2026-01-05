@@ -1,0 +1,137 @@
+Attribute VB_Name = "mRunAccess_月別分割"
+Option Explicit
+
+' ========================================
+' マクロ名: Access月別分割マクロ実行
+' 処理概要: ExcelからAccessデータベースの月別分割処理を外部実行
+'          転送マクロで処理した年のDBに対して月別分割を実行
+' 作成日: 不明
+' 更新日: 2025-01-05（年別対応に改修）
+'
+' 処理の流れ:
+' 1. 転送マクロから処理済み年リストを取得
+' 2. 各年のDBファイルに対して月別分割マクロを実行
+' ========================================
+
+' DBパス設定（転送マクロと同じ）
+Const DB_BASE_PATH As String = "Z:\全社共有\オート事業部\日報\不良集計\不良集計表\"
+Const DB_FILE_PREFIX As String = "不良調査表DB-"
+
+' ============================================
+' 補助関数: BuildDBPath
+' 役割: 年からDBファイルパスを動的生成
+' ============================================
+Function BuildDBPath(yearValue As Integer) As String
+    BuildDBPath = DB_BASE_PATH & yearValue & "年\" & DB_FILE_PREFIX & yearValue & ".accdb"
+End Function
+
+Sub RunAccess_月別分割()
+    ' ============================================
+    ' 変数宣言
+    ' ============================================
+    Dim acc As Object
+    Dim dbPath As String
+    Dim years As Variant
+    Dim yearValue As Variant
+    Dim processedCount As Long
+
+    ' ============================================
+    ' 処理対象の年を取得
+    ' ============================================
+    years = GetTransferredYears()
+
+    ' 年リストが空の場合は終了
+    If IsArrayEmpty(years) Then
+        Application.StatusBar = "月別分割: 処理対象の年がありません"
+        Application.Wait Now + TimeValue("00:00:02")
+        Application.StatusBar = False
+        Exit Sub
+    End If
+
+    ' ============================================
+    ' 初期設定
+    ' ============================================
+    Application.ScreenUpdating = False
+    Application.EnableCancelKey = 0   ' xlDisable（Ctrl+Break無効化）
+    processedCount = 0
+
+    On Error GoTo EH
+
+    ' ============================================
+    ' 各年に対して月別分割を実行
+    ' ============================================
+    For Each yearValue In years
+        dbPath = BuildDBPath(CInt(yearValue))
+
+        Application.StatusBar = "月別分割: " & yearValue & "年を処理中..."
+
+        ' Access起動とDB接続
+        Set acc = CreateObject("Access.Application")
+        acc.Visible = False
+        acc.OpenCurrentDatabase dbPath, False
+
+        ' マクロ実行（関数→UIマクロの2段階フォールバック）
+        On Error Resume Next
+        acc.Run "月別分割_Run"
+        If Err.Number <> 0 Then
+            Err.Clear
+            acc.DoCmd.RunMacro "月別分割"
+        End If
+        On Error GoTo EH
+
+        ' Access終了
+        acc.CloseCurrentDatabase
+        acc.Quit
+        Set acc = Nothing
+
+        processedCount = processedCount + 1
+        Application.StatusBar = "月別分割: " & yearValue & "年 完了"
+        DoEvents
+    Next yearValue
+
+    ' ============================================
+    ' 完了処理
+    ' ============================================
+    Application.StatusBar = "月別分割: " & processedCount & "年分の処理が完了しました"
+    Application.Wait Now + TimeValue("00:00:02")
+
+CleanUp:
+    On Error Resume Next
+    If Not acc Is Nothing Then
+        acc.CloseCurrentDatabase
+        acc.Quit
+        Set acc = Nothing
+    End If
+    Application.StatusBar = False
+    Application.ScreenUpdating = True
+    Application.EnableCancelKey = 1   ' xlInterrupt（通常状態に復帰）
+    Exit Sub
+
+EH:
+    Application.StatusBar = "月別分割: 失敗 (" & Err.Number & ") " & Err.Description
+    Application.Wait Now + TimeValue("00:00:03")
+    Resume CleanUp
+End Sub
+
+' ============================================
+' 補助関数: IsArrayEmpty
+' 役割: 配列が空かどうかを判定
+' ============================================
+Private Function IsArrayEmpty(arr As Variant) As Boolean
+    On Error Resume Next
+
+    ' 配列でない場合
+    If Not IsArray(arr) Then
+        IsArrayEmpty = True
+        Exit Function
+    End If
+
+    ' 空配列の場合、UBound < LBound になる
+    If UBound(arr) < LBound(arr) Then
+        IsArrayEmpty = True
+    Else
+        IsArrayEmpty = False
+    End If
+
+    On Error GoTo 0
+End Function

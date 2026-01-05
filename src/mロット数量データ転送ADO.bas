@@ -186,6 +186,9 @@ Sub ロット数量データ転送ADO()
     batchCounter = 0
     totalSuccess = 0
 
+    ' 年リストを初期化（月別分割マクロとの連携用）
+    InitTransferredYears
+
     ' 転送対象のフィールドを明示的に指定
     Dim targetFields As Variant
     targetFields = Array("日付", "品番", "品番末尾", "注番月", "ロット", "工程", "ロット数量")
@@ -484,6 +487,9 @@ NextRow:
         End If
 
         totalSuccess = totalSuccess + successCount
+
+        ' この年を処理済みリストに追加（月別分割マクロとの連携用）
+        AddTransferredYear CInt(yearKey)
 
         ' 接続クローズ
         conn.Close
