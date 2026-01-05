@@ -1,13 +1,13 @@
 # excel-auto 進捗管理
 
-**最終更新**: 2026-01-05 18:59
-**直近Gitコミット**: 10a77e6 refactor: docs/excel-knowledge/を整理 - 冗長ファイル削除
+**最終更新**: 2026-01-05 21:30
+**直近Gitコミット**: (pending) feat: UserForm日付入力yyyy/m/d対応
 
 ---
 
 ## 現在の状態
 
-rulesディレクトリ最適化とナレッジベース整理が完了。核心的なVBAルール（Activate禁止、コメント標準、症状診断フロー等）は`.claude/rules/11-vba-coding-standards.md`に統合済み。
+UserFormの日付入力を年末年始対応に改修。m/d入力時にシステム日付の西暦を使用し、表示はyyyy/m/d形式で確認可能。明示的にyyyy/m/dで入力すればその西暦を使用。
 
 ### ファイル場所
 
@@ -37,6 +37,9 @@ rulesディレクトリ最適化とナレッジベース整理が完了。核心
 - [x] docs/excel-knowledge/ 整理（2026-01-05）
   - 冗長ファイル削除（rulesに統合済みの5ファイル）
   - フォルダ構造簡素化（failures/, m-language/, examples/）
+- [x] UserForm日付入力yyyy/m/d対応（2026-01-05）
+  - CTextBoxEvent.cls, UserForm1.frm, UserForm2.frm改修
+  - bas2sjis.ps1を.cls/.frm対応に改修
 
 ## 次セッションへの引き継ぎ
 

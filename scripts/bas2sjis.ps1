@@ -26,9 +26,9 @@ if (-not (Test-Path $InputFile)) {
     exit 1
 }
 
-# ファイル名抽出
-$BaseName = [System.IO.Path]::GetFileNameWithoutExtension($InputFile)
-$OutputFile = "macros\$BaseName.bas"
+# ファイル名抽出（拡張子を維持）
+$FileName = [System.IO.Path]::GetFileName($InputFile)
+$OutputFile = "macros\$FileName"
 
 # macros ディレクトリの存在確認・作成
 if (-not (Test-Path "macros")) {
