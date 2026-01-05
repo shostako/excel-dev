@@ -14,8 +14,7 @@ Excelマクロ（VBA）開発プロジェクト。
 | 02-monday-behavior.md | Mondayの行動ルール |
 | 03-logging.md | 作業ログルール |
 | 04-subagent-planmode.md | サブエージェント・Plan Mode運用 |
-| 10-vba-required-reading.md | 必読ファイル |
-| 11-vba-coding-standards.md | VBAコーディング規約 |
+| 11-vba-coding-standards.md | VBAコーディング規約（失敗パターン・黄金律含む） |
 | 12-vba-encoding.md | 文字エンコーディング管理 |
 | 13-git-workflow.md | Git/ワークフロー |
 
