@@ -2,16 +2,6 @@
   "$schema": "https://json.schemastore.org/claude-code-settings.json",
   "agent": "monday",
   "hooks": {
-    "SessionStart": [
-      {
-        "hooks": [
-          {
-            "type": "command",
-            "command": "powershell -ExecutionPolicy Bypass -File ../hooks/hook-wrapper.ps1 SessionStart"
-          }
-        ]
-      }
-    ],
     "SessionEnd": [
       {
         "hooks": [

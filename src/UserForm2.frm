@@ -1,5 +1,5 @@
 VERSION 5.00
-Begin {C62A69F0-16DC-11CE-9E98-00AA00574A4F} UserForm2
+Begin {C62A69F0-16DC-11CE-9E98-00AA00574A4F} UserForm2 
    Caption         =   "入力支援"
    ClientHeight    =   3912
    ClientLeft      =   108
@@ -162,14 +162,14 @@ Private Sub UserForm_KeyDown(ByVal KeyCode As MSForms.ReturnInteger, ByVal Shift
                 Set retCtrl = ctrl
                 If retCtrl.Value <> "" Then
                     If retCtrl.Value <> "0" And retCtrl.Value <> "1" Then
-                        MsgBox "戻めしは「0」または「1」を入力してください。", vbExclamation
+                        MsgBox "差戻しは「0」または「1」を入力してください。", vbExclamation
                         KeyCode = 0
                         retCtrl.Value = "0"
                         retCtrl.SetFocus
                     End If
                 End If
 
-                ' 最終行の戻めし入力欄から入力→追加ボタンへフォーカス移動
+                ' 最終行の差戻し入力欄から入力→追加ボタンへフォーカス移動
                 Dim rowNum As String
                 rowNum = Replace(ctrl.Name, "TextBoxReturn_", "")
                 If CInt(rowNum) = currentRowCount Then
@@ -415,7 +415,7 @@ Private Sub CommandButton1_Click()
     If ComboBox1.Value = "" Then MsgBox "工程を選択してください。", vbExclamation: ComboBox1.SetFocus: Exit Sub
     If ComboBox2.Value = "" Then MsgBox "品番を選択してください。", vbExclamation: ComboBox2.SetFocus: Exit Sub
     If ComboBox3.Value = "" Then MsgBox "品番末尾を選択してください。", vbExclamation: ComboBox3.SetFocus: Exit Sub
-    If TextBox2.Value = "" Then MsgBox "月間後を入力してください。", vbExclamation: TextBox2.SetFocus: Exit Sub
+    If TextBox2.Value = "" Then MsgBox "注番月を入力してください。", vbExclamation: TextBox2.SetFocus: Exit Sub
     If TextBox3.Value = "" Then MsgBox "ロットを入力してください。", vbExclamation: TextBox3.SetFocus: Exit Sub
 
     Dim i As Integer, allRowsValid As Boolean: allRowsValid = True
@@ -503,7 +503,7 @@ Private Sub CommandButton2_Click()
     Application.ScreenUpdating = False
     Application.EnableEvents = False
     Application.Calculation = xlCalculationManual
-    Application.StatusBar = "「_不良集計ゾーン別全」テーブルを検索中..."
+    Application.StatusBar = "「_不良集計ゾーン別S」テーブルを検索中..."
 
     Dim tbl As ListObject, ws As Worksheet
     Dim tableFound As Boolean: tableFound = False
@@ -511,7 +511,7 @@ Private Sub CommandButton2_Click()
     On Error Resume Next
     For Each ws In ThisWorkbook.Worksheets
         For Each tbl In ws.ListObjects
-            If tbl.Name = "_不良集計ゾーン別全" Then
+            If tbl.Name = "_不良集計ゾーン別S" Then
                 tableFound = True: Exit For
             End If
         Next tbl
@@ -520,7 +520,7 @@ Private Sub CommandButton2_Click()
     On Error GoTo 0
 
     If Not tableFound Then
-        MsgBox "「_不良集計ゾーン別全」テーブルが見つかりません。", vbCritical
+        MsgBox "「_不良集計ゾーン別S」テーブルが見つかりません。", vbCritical
         GoTo CleanExit
     End If
 
@@ -581,15 +581,15 @@ Private Sub CommandButton2_Click()
                 .Range.Cells(1, tbl.ListColumns("日付").Index).Value = TextBox1.Value
                 .Range.Cells(1, tbl.ListColumns("品番").Index).Value = ComboBox2.Value
                 .Range.Cells(1, tbl.ListColumns("品番末尾").Index).Value = ComboBox3.Value
-                .Range.Cells(1, tbl.ListColumns("月間後").Index).Value = TextBox2.Value
+                .Range.Cells(1, tbl.ListColumns("注番月").Index).Value = TextBox2.Value
                 .Range.Cells(1, tbl.ListColumns("ロット").Index).Value = TextBox3.Value
-                .Range.Cells(1, tbl.ListColumns("工程").Index).Value = _
+                .Range.Cells(1, tbl.ListColumns("発見").Index).Value = _
                     IIf(ComboBox1.Value = "成形", "S", IIf(ComboBox1.Value = "塗装", "T", _
                     IIf(ComboBox1.Value = "モール", "M", "K")))
                 .Range.Cells(1, tbl.ListColumns("ゾーン").Index).Value = zVal
                 .Range.Cells(1, tbl.ListColumns("番号").Index).Value = nVal
                 .Range.Cells(1, tbl.ListColumns("数量").Index).Value = qVal
-                .Range.Cells(1, tbl.ListColumns("戻めし").Index).Value = rVal  ' 戻めしを数値(0/1)で転記
+                .Range.Cells(1, tbl.ListColumns("差戻し").Index).Value = rVal  ' 戻めしを数値(0/1)で転記
             End With
             rowIndex = rowIndex + 1
         End If
@@ -623,7 +623,7 @@ End Sub
 ' ClearInputFields（入力欄をリセット - 工程と日付を保持）
 Private Sub ClearInputFields()
     ' 静的コントロールクリア（ComboBox1=工程とTextBox1=日付は保持）
-    TextBox2.Value = ""    ' 月間後
+    TextBox2.Value = ""    ' 注番月
     TextBox3.Value = ""    ' ロット
     TextBox4.Value = ""    ' 品番展開
     ComboBox2.Clear        ' 品番
@@ -764,12 +764,12 @@ Private Sub TextBox1_Exit(ByVal Cancel As MSForms.ReturnBoolean)
 End Sub
 
 '==============================================
-' TextBox2 Exit (月間後)
+' TextBox2 Exit (注番月)
 Private Sub TextBox2_Exit(ByVal Cancel As MSForms.ReturnBoolean)
     If TextBox2.Value = "" Then Exit Sub
     Dim v As String: v = StrConv(TextBox2.Value, vbNarrow)
     If Not IsNumeric(v) Or Val(v) <> Int(Val(v)) Or Val(v) < 0 Or Val(v) > 12 Then
-        MsgBox "月間後は0〜12の数字を入力してください。", vbExclamation
+        MsgBox "注番月は1から12の数字を入力してください。", vbExclamation
         TextBox2.Value = "": Cancel = True: TextBox2.SetFocus
     Else
         TextBox2.Value = v
@@ -788,3 +788,5 @@ Private Sub TextBox3_Exit(ByVal Cancel As MSForms.ReturnBoolean)
         TextBox3.Value = v
     End If
 End Sub
+
+

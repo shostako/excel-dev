@@ -1,5 +1,5 @@
 VERSION 5.00
-Begin {C62A69F0-16DC-11CE-9E98-00AA00574A4F} UserForm1
+Begin {C62A69F0-16DC-11CE-9E98-00AA00574A4F} UserForm1 
    Caption         =   "入力支援"
    ClientHeight    =   4008
    ClientLeft      =   108
@@ -18,7 +18,7 @@ Option Explicit
 
 ' クラスハンドラ
 Private dateHandler As CTextBoxEvent    ' 日付用ハンドラ
-Private monthHandler As CTextBoxEvent   ' 月間後用ハンドラ
+Private monthHandler As CTextBoxEvent   ' 注番月用ハンドラ
 Private lotHandler As CTextBoxEvent     ' ロット用ハンドラ
 Private qtyHandler As CTextBoxEvent     ' 数量用ハンドラ
 
@@ -82,7 +82,7 @@ Private Sub InitializeTextBoxHandlers()
     Set dateHandler = New CTextBoxEvent
     Set dateHandler.TB = TextBox1
 
-    ' 月間後用ハンドラ
+    ' 注番月用ハンドラ
     Set monthHandler = New CTextBoxEvent
     Set monthHandler.TB = TextBox2
 
@@ -121,10 +121,10 @@ Private Sub UserForm_KeyDown(ByVal KeyCode As MSForms.ReturnInteger, ByVal Shift
                     End If
 
                 Case "Month"
-                    ' 月間後入力チェック
+                    ' 注番月入力チェック
                     If ctrl.Value <> "" Then
                         If Not IsNumeric(ctrl.Value) Or Val(ctrl.Value) <> Int(Val(ctrl.Value)) Or Val(ctrl.Value) < 0 Or Val(ctrl.Value) > 12 Then
-                            MsgBox "月間後は0〜12の数字を入力してください。", vbExclamation
+                            MsgBox "注番月は1から12の数字を入力してください。", vbExclamation
                             KeyCode = 0
                             ctrl.Value = ""
                             ctrl.SetFocus
@@ -372,7 +372,7 @@ Private Sub TextBox1_Exit(ByVal Cancel As MSForms.ReturnBoolean)
     End If
 End Sub
 
-' TextBox2（月間後）の入力検証
+' TextBox2（注番月）の入力検証
 Private Sub TextBox2_Exit(ByVal Cancel As MSForms.ReturnBoolean)
     If TextBox2.Value = "" Then Exit Sub
 
@@ -381,7 +381,7 @@ Private Sub TextBox2_Exit(ByVal Cancel As MSForms.ReturnBoolean)
 
     ' 数値かチェック
     If Not IsNumeric(TextBox2.Value) Then
-        MsgBox "月間後は0から12までの数字を入力してください。", vbExclamation
+        MsgBox "注番月は1から12までの数字を入力してください。", vbExclamation
         TextBox2.Value = ""
         Cancel = True
         TextBox2.SetFocus
@@ -390,7 +390,7 @@ Private Sub TextBox2_Exit(ByVal Cancel As MSForms.ReturnBoolean)
 
     ' 整数かチェック
     If Int(Val(TextBox2.Value)) <> Val(TextBox2.Value) Then
-        MsgBox "月間後は0から12までの数字を入力してください。", vbExclamation
+        MsgBox "注番月は1から12までの数字を入力してください。", vbExclamation
         TextBox2.Value = ""
         Cancel = True
         TextBox2.SetFocus
@@ -402,7 +402,7 @@ Private Sub TextBox2_Exit(ByVal Cancel As MSForms.ReturnBoolean)
     monthValue = CInt(TextBox2.Value)
 
     If monthValue < 0 Or monthValue > 12 Then
-        MsgBox "月間後は0から12までの数字を入力してください。", vbExclamation
+        MsgBox "注番月は1から12までの数字を入力してください。", vbExclamation
         TextBox2.Value = ""
         Cancel = True
         TextBox2.SetFocus
@@ -510,7 +510,7 @@ Private Sub CommandButton1_Click()
     End If
 
     If TextBox2.Value = "" Then
-        MsgBox "月間後を入力してください。", vbExclamation
+        MsgBox "注番月を入力してください。", vbExclamation
         TextBox2.SetFocus
         Exit Sub
     End If
@@ -590,9 +590,9 @@ Private Sub CommandButton2_Click()
     Application.Calculation = xlCalculationManual
 
     ' 進捗表示
-    Application.StatusBar = "「_ロット数量全」テーブルを検索中..."
+    Application.StatusBar = "「_ロット数量S」テーブルを検索中..."
 
-    ' _ロット数量全テーブルの参照（修正版）
+    ' _ロット数量Sテーブルの参照（修正版）
     Dim tbl As ListObject
     Dim ws As Worksheet
     Dim tableFound As Boolean
@@ -608,7 +608,7 @@ Private Sub CommandButton2_Click()
     ' すべてのワークシートを検索してテーブルを探す
     For Each ws In ThisWorkbook.Worksheets
         For Each tbl In ws.ListObjects
-            If tbl.Name = "_ロット数量全" Then
+            If tbl.Name = "_ロット数量S" Then
                 tableFound = True
                 Exit For
             End If
@@ -620,7 +620,7 @@ Private Sub CommandButton2_Click()
     If Not tableFound Then
         For Each ws In ThisWorkbook.Worksheets
             For Each tbl In ws.ListObjects
-                If tbl.Name = "ロット数量全" Then
+                If tbl.Name = "ロット数量S" Then
                     tableFound = True
                     Exit For
                 End If
@@ -631,7 +631,7 @@ Private Sub CommandButton2_Click()
     On Error GoTo 0
 
     If Not tableFound Then
-        MsgBox "ロット数量全テーブルが見つかりません。テーブル名を確認してください。", vbCritical
+        MsgBox "ロット数量Sテーブルが見つかりません。テーブル名を確認してください。", vbCritical
         GoTo CleanExit
     End If
 
@@ -699,7 +699,7 @@ Private Sub CommandButton2_Click()
         insertData(i + 1, 1) = parts(0)  ' 日付
         insertData(i + 1, 2) = parts(1)  ' 品番
         insertData(i + 1, 3) = parts(2)  ' 品番末尾
-        insertData(i + 1, 4) = parts(3)  ' 月間後
+        insertData(i + 1, 4) = parts(3)  ' 注番月
         insertData(i + 1, 5) = parts(4)  ' ロット
         insertData(i + 1, 6) = parts(5)  ' 工程
         insertData(i + 1, 7) = parts(6)  ' ロット量
@@ -739,7 +739,7 @@ End Sub
 
 ' 終了ボタンクリック時の処理
 Private Sub CommandButton3_Click()
-    ' _ロット数量全テーブルの参照
+    ' _ロット数量Sテーブルの参照
     Dim tbl As ListObject
     Dim ws As Worksheet
     Dim tableFound As Boolean
@@ -753,7 +753,7 @@ Private Sub CommandButton3_Click()
     ' すべてのワークシートを検索してテーブルを探す
     For Each ws In ThisWorkbook.Worksheets
         For Each tbl In ws.ListObjects
-            If tbl.Name = "_ロット数量全" Then
+            If tbl.Name = "_ロット数量S" Then
                 tableFound = True
                 Exit For
             End If
@@ -765,7 +765,7 @@ Private Sub CommandButton3_Click()
     If Not tableFound Then
         For Each ws In ThisWorkbook.Worksheets
             For Each tbl In ws.ListObjects
-                If tbl.Name = "ロット数量全" Then
+                If tbl.Name = "ロット数量S" Then
                     tableFound = True
                     Exit For
                 End If
@@ -816,7 +816,7 @@ End Sub
 ' 入力欄をクリアする関数（工程と日付を保持）
 Private Sub ClearInputFields()
     ' ComboBox1（工程）とTextBox1（日付）は保持
-    TextBox2.Value = ""    ' 月間後
+    TextBox2.Value = ""    ' 注番月
     TextBox3.Value = ""    ' ロット
     TextBox4.Value = ""    ' 数量
     TextBox5.Value = ""    ' 品番展開結果
@@ -834,3 +834,5 @@ Private Sub ClearInputFields()
     ' IMEモードを強制的に半角英数に設定
     SetAlphaIME TextBox1
 End Sub
+
+

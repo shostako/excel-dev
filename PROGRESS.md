@@ -1,13 +1,13 @@
 # excel-auto 進捗管理
 
-**最終更新**: 2026-01-05 21:30
-**直近Gitコミット**: (pending) feat: UserForm日付入力yyyy/m/d対応
+**最終更新**: 2026-01-07 11:48
+**直近Gitコミット**: f08e925 feat: UserForm日付入力yyyy/m/d対応（年末年始対策）
 
 ---
 
 ## 現在の状態
 
-UserFormの日付入力を年末年始対応に改修。m/d入力時にシステム日付の西暦を使用し、表示はyyyy/m/d形式で確認可能。明示的にyyyy/m/dで入力すればその西暦を使用。
+UserFormのテーブル名・列名参照エラーを修正。ルールに「参照名の確認（推測禁止）」を追加。
 
 ### ファイル場所
 
@@ -40,6 +40,10 @@ UserFormの日付入力を年末年始対応に改修。m/d入力時にシステ
 - [x] UserForm日付入力yyyy/m/d対応（2026-01-05）
   - CTextBoxEvent.cls, UserForm1.frm, UserForm2.frm改修
   - bas2sjis.ps1を.cls/.frm対応に改修
+- [x] UserFormテーブル名・列名参照エラー修正（2026-01-07）
+  - UserForm1.frm: _ロット数量全 → _ロット数量S
+  - UserForm2.frm: _不良集計ゾーン別全 → _不良集計ゾーン別S、工程→発見、戻めし→差戻し
+  - 12-vba-encoding.md: 「参照名の確認（推測禁止）」ルール追加
 
 ## 次セッションへの引き継ぎ
 
