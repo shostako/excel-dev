@@ -4,13 +4,14 @@ Option Explicit
 ' ========================================
 ' マクロ名: Access月別分割マクロ実行
 ' 処理概要: ExcelからAccessデータベースの月別分割処理を外部実行
-'          転送マクロで処理した年のDBに対して月別分割を実行
+'          転送マクロで処理した年の各月DBに対して月別分割を実行
 ' 作成日: 不明
-' 更新日: 2025-01-05（年別対応に改修）
+' 更新日: 2026-01-08（12ファイル処理・進捗表示を復元）
 '
 ' 処理の流れ:
 ' 1. 転送マクロから処理済み年リストを取得
-' 2. 各年のDBファイルに対して月別分割マクロを実行
+' 2. 各年の1〜12月DBファイルに対して月別分割マクロを実行
+' 3. 進捗表示: 「○年 X/12」形式
 ' ========================================
 
 ' DBパス設定（転送マクロと同じ）
@@ -19,10 +20,13 @@ Const DB_FILE_PREFIX As String = "不良調査表DB-"
 
 ' ============================================
 ' 補助関数: BuildDBPath
-' 役割: 年からDBファイルパスを動的生成
+' 役割: 年と月からDBファイルパスを動的生成
+' 形式: 不良調査表DB-2025-01.accdb
 ' ============================================
-Function BuildDBPath(yearValue As Integer) As String
-    BuildDBPath = DB_BASE_PATH & yearValue & "年\" & DB_FILE_PREFIX & yearValue & ".accdb"
+Function BuildDBPath(yearValue As Integer, monthValue As Integer) As String
+    Dim monthStr As String
+    monthStr = Format(monthValue, "00")
+    BuildDBPath = DB_BASE_PATH & yearValue & "年\" & DB_FILE_PREFIX & yearValue & "-" & monthStr & ".accdb"
 End Function
 
 Sub RunAccess_月別分割()
@@ -33,7 +37,7 @@ Sub RunAccess_月別分割()
     Dim dbPath As String
     Dim years As Variant
     Dim yearValue As Variant
-    Dim processedCount As Long
+    Dim monthNum As Integer
 
     ' ============================================
     ' 処理対象の年を取得
@@ -53,46 +57,46 @@ Sub RunAccess_月別分割()
     ' ============================================
     Application.ScreenUpdating = False
     Application.EnableCancelKey = 0   ' xlDisable（Ctrl+Break無効化）
-    processedCount = 0
 
     On Error GoTo EH
 
     ' ============================================
-    ' 各年に対して月別分割を実行
+    ' 各年・各月に対して月別分割を実行
     ' ============================================
     For Each yearValue In years
-        dbPath = BuildDBPath(CInt(yearValue))
+        For monthNum = 1 To 12
+            dbPath = BuildDBPath(CInt(yearValue), monthNum)
 
-        Application.StatusBar = "月別分割: " & yearValue & "年を処理中..."
+            ' 進捗表示: 「2025年 1/12」形式
+            Application.StatusBar = "月別分割: " & yearValue & "年 " & monthNum & "/12"
 
-        ' Access起動とDB接続
-        Set acc = CreateObject("Access.Application")
-        acc.Visible = False
-        acc.OpenCurrentDatabase dbPath, False
+            ' Access起動とDB接続
+            Set acc = CreateObject("Access.Application")
+            acc.Visible = False
+            acc.OpenCurrentDatabase dbPath, False
 
-        ' マクロ実行（関数→UIマクロの2段階フォールバック）
-        On Error Resume Next
-        acc.Run "月別分割_Run"
-        If Err.Number <> 0 Then
-            Err.Clear
-            acc.DoCmd.RunMacro "月別分割"
-        End If
-        On Error GoTo EH
+            ' マクロ実行（関数→UIマクロの2段階フォールバック）
+            On Error Resume Next
+            acc.Run "月別分割_Run"
+            If Err.Number <> 0 Then
+                Err.Clear
+                acc.DoCmd.RunMacro "月別分割"
+            End If
+            On Error GoTo EH
 
-        ' Access終了
-        acc.CloseCurrentDatabase
-        acc.Quit
-        Set acc = Nothing
+            ' Access終了
+            acc.CloseCurrentDatabase
+            acc.Quit
+            Set acc = Nothing
 
-        processedCount = processedCount + 1
-        Application.StatusBar = "月別分割: " & yearValue & "年 完了"
-        DoEvents
+            DoEvents
+        Next monthNum
     Next yearValue
 
     ' ============================================
     ' 完了処理
     ' ============================================
-    Application.StatusBar = "月別分割: " & processedCount & "年分の処理が完了しました"
+    Application.StatusBar = "月別分割: 完了"
     Application.Wait Now + TimeValue("00:00:02")
 
 CleanUp:

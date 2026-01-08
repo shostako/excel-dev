@@ -7,25 +7,22 @@ Option Explicit
 ' ソーステーブル: シート「(Active)」テーブル「_不良集計ゾーン別S」
 ' ターゲットテーブル: Accessデータベース「不良調査表DB-{年}.accdb」テーブル「_不良集計ゾーン別」
 ' 作成日: 不明
-' 更新日: 2025-01-05（年別自動振り分け機能追加）
+' 更新日: 2026-01-08（重複確認機能を削除）
 '
 ' 処理の流れ:
 ' 1. Excelテーブルからフィールド構造とデータ範囲を取得
 ' 2. データから含まれる年を抽出し、全DBファイルの存在を事前確認
 ' 3. DBファイルが1つでも存在しない場合は処理中止（データは残る）
 ' 4. 年ごとにADO接続でAccessデータベースに接続
-' 5. 既存データをDictionaryにロード（日付範囲±7日でフィルタリング）
-' 6. トランザクション制御でバッチINSERT実行（50件ごとコミット）
-' 7. 全年の転送成功後、ソーステーブルの指定フィールドをクリア
+' 5. トランザクション制御でバッチINSERT実行（50件ごとコミット）
+' 6. 全年の転送成功後、ソーステーブルの指定フィールドをクリア
 '
 ' 技術的特徴:
 ' - 年別自動振り分け機能（日付から年を抽出し適切なDBに転送）
 ' - 事前DBファイル存在チェック（All or Nothing方式）
 ' - ADO接続とトランザクション管理
-' - Dictionary重複チェック（「差戻し」列を含むキー生成）
 ' - バッチ処理によるパフォーマンス最適化（BATCH_SIZE = 50）
 ' - 動的フィールドマッピング（ヘッダー行から自動取得）
-' - 日付範囲フィルター（±7日マージン）による既存データロード効率化
 ' - 空白行スキップ機能
 ' - エラー位置特定機能（errorLocation変数）
 ' - SQLインジェクション対策（シングルクォートエスケープ）
@@ -153,15 +150,11 @@ Sub ゾーン別データ転送ADO()
     Dim i As Long, j As Long
     Dim rowCount As Long
     Dim sqlCheck As String
-    Dim key As String
-    Dim existingDict As Object
     Dim successCount As Long
     Dim skippedCount As Long ' 空白行のスキップカウント用
-    Dim keyFields As String
     Dim transStarted As Boolean ' トランザクション開始フラグ
     Dim batchCounter As Long   ' バッチ処理用カウンター
     Dim startTime As Double    ' 処理時間計測用
-    Dim recordCount As Long    ' レコード数カウント用
     Dim errorLocation As String ' エラー発生箇所特定用
 
     ' 年別振り分け用変数
@@ -178,7 +171,7 @@ Sub ゾーン別データ転送ADO()
     ' 処理時間計測開始
     startTime = Timer
 
-    ' トランザクション開始フラグを初期化
+    ' トランザクションフラグを初期化
     transStarted = False
     batchCounter = 0
     totalSuccess = 0
@@ -218,9 +211,6 @@ Sub ゾーン別データ転送ADO()
         Application.Wait Now + TimeValue("00:00:03") ' 3秒間表示
         GoTo CleanExit
     End If
-
-    ' 重複チェック用のキーフィールド設定（「差戻し」列を含む）
-    keyFields = "日付,品番,品番末尾,注番月,ロット,発見,ゾーン,番号,差戻し"
 
     ' 処理位置を記録
     errorLocation = "フィールドマッピング"
@@ -351,66 +341,6 @@ Sub ゾーン別データ転送ADO()
 
         rs.Close
 
-        ' この年のデータの日付範囲を計算
-        Dim minDate As Date
-        Dim maxDate As Date
-        Dim dateValue As Variant
-
-        minDate = DateSerial(2100, 1, 1)
-        maxDate = DateSerial(1900, 1, 1)
-
-        Set rowNumbers = yearGroups(yearKey)
-        For Each rowNum In rowNumbers
-            dateValue = tbl.ListRows(CLng(rowNum)).Range(1, dateIndex).Value
-            If IsDate(dateValue) Then
-                If CDate(dateValue) < minDate Then minDate = CDate(dateValue)
-                If CDate(dateValue) > maxDate Then maxDate = CDate(dateValue)
-            End If
-        Next rowNum
-
-        ' 安全マージンを追加
-        minDate = minDate - 7
-        maxDate = maxDate + 7
-
-        ' 既存データの確認（重複転送防止）
-        Application.StatusBar = yearKey & "年: 既存データを確認しています..."
-
-        Set existingDict = CreateObject("Scripting.Dictionary")
-
-        Dim dateFilter As String
-        dateFilter = " WHERE [日付] BETWEEN #" & Format(minDate, "yyyy/mm/dd") & "# AND #" & Format(maxDate, "yyyy/mm/dd") & "#"
-
-        sqlCheck = "SELECT " & Replace(keyFields, ",", ", ") & " FROM [_不良集計ゾーン別]" & dateFilter
-
-        Set rs = conn.Execute(sqlCheck)
-
-        recordCount = 0
-        If Not rs.EOF Then
-            rs.MoveFirst
-            Do Until rs.EOF
-                key = ""
-                Dim fieldArray As Variant
-                Dim fieldIndex As Integer
-
-                fieldArray = Split(keyFields, ",")
-                For fieldIndex = 0 To UBound(fieldArray)
-                    If Not IsNull(rs(Trim(fieldArray(fieldIndex)))) Then
-                        key = key & rs(Trim(fieldArray(fieldIndex))) & "|"
-                    Else
-                        key = key & "NULL|"
-                    End If
-                Next fieldIndex
-
-                If Not existingDict.Exists(key) Then
-                    existingDict.Add key, True
-                End If
-
-                rs.MoveNext
-                recordCount = recordCount + 1
-            Loop
-        End If
-        rs.Close
-
         ' トランザクション開始
         conn.BeginTrans
         transStarted = True
@@ -421,6 +351,7 @@ Sub ゾーン別データ転送ADO()
         skippedCount = 0
         batchCounter = 0
 
+        Set rowNumbers = yearGroups(yearKey)
         For Each rowNum In rowNumbers
             i = CLng(rowNum)
 
@@ -430,31 +361,22 @@ Sub ゾーン別データ転送ADO()
                 GoTo NextRow
             End If
 
-            ' キー値を作成して重複チェック
-            key = CreateKeyFromRow(tbl, i, keyFields, fieldIndices)
+            ' 無条件でINSERT（重複チェックなし）
+            Dim sqlInsert As String
+            sqlInsert = "INSERT INTO [_不良集計ゾーン別] (" & fieldList & ") VALUES (" & _
+                        GetSelectedValues(tbl, i, targetFields, fieldIndices) & ");"
 
-            If Not existingDict.Exists(key) Then
-                Dim sqlInsert As String
-                sqlInsert = "INSERT INTO [_不良集計ゾーン別] (" & fieldList & ") VALUES (" & _
-                            GetSelectedValues(tbl, i, targetFields, fieldIndices) & ");"
+            conn.Execute sqlInsert
 
-                conn.Execute sqlInsert
+            successCount = successCount + 1
+            batchCounter = batchCounter + 1
 
-                successCount = successCount + 1
-
-                On Error Resume Next
-                existingDict.Add key, True
-                On Error GoTo ErrorHandler
-
-                batchCounter = batchCounter + 1
-
-                If batchCounter >= BATCH_SIZE Then
-                    conn.CommitTrans
-                    transStarted = False
-                    conn.BeginTrans
-                    transStarted = True
-                    batchCounter = 0
-                End If
+            If batchCounter >= BATCH_SIZE Then
+                conn.CommitTrans
+                transStarted = False
+                conn.BeginTrans
+                transStarted = True
+                batchCounter = 0
             End If
 
 NextRow:
@@ -521,7 +443,6 @@ CleanExit:
     Set rs = Nothing
     Set cmd = Nothing
     Set conn = Nothing
-    Set existingDict = Nothing
     Set fieldIndices = Nothing
     Set accessFields = Nothing
     Set years = Nothing
@@ -578,40 +499,6 @@ Function IsRowEmpty(tbl As ListObject, rowIndex As Long, targetFields As Variant
             End If
         End If
     Next ii
-End Function
-
-' ============================================
-' 補助関数: CreateKeyFromRow
-' ============================================
-Function CreateKeyFromRow(tbl As ListObject, rowIndex As Long, keyFields As String, fieldIndices As Object) As String
-    Dim keyStr As String
-    Dim fArray As Variant
-    Dim ii As Integer
-    Dim fName As String
-    Dim colIndex As Integer
-    Dim cellValue As Variant
-
-    keyStr = ""
-    fArray = Split(keyFields, ",")
-
-    For ii = 0 To UBound(fArray)
-        fName = Trim(fArray(ii))
-
-        If fieldIndices.Exists(fName) Then
-            colIndex = fieldIndices(fName)
-            cellValue = tbl.ListRows(rowIndex).Range(1, colIndex).Value
-
-            If IsEmpty(cellValue) Or IsNull(cellValue) Then
-                keyStr = keyStr & "NULL|"
-            Else
-                keyStr = keyStr & CStr(cellValue) & "|"
-            End If
-        Else
-            keyStr = keyStr & "MISSING|"
-        End If
-    Next ii
-
-    CreateKeyFromRow = keyStr
 End Function
 
 ' ============================================
